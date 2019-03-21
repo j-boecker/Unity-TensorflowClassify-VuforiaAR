@@ -10,4 +10,6 @@ Due to filesize these files are uploaded with dropbox:
 
 Tensorflowsharp Unity package to remimport Tensorflowsharp and ml agents:
 
+APK build with this project:
+
 https://www.dropbox.com/s/r3do4n1pddwfmu0/TensorflowUnityClassify.apk?dl=0
