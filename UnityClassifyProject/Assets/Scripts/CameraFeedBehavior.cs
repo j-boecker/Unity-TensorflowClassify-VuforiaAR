@@ -112,5 +112,12 @@ public class CameraFeedBehavior : MonoBehaviour {
 		return scaled.GetPixels32();
 	}
 
+    public Texture2D GetImageTexture()
+    {
+        Texture2D camTex = new Texture2D(image.Width, image.Height);
+        image.CopyToTexture(camTex);
+        return camTex;
+    }
+
 #endregion //PRIVATE_METHODS
 }

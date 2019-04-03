@@ -42,6 +42,7 @@ public class Classification : MonoBehaviour {
 	}
 
 	void ProcessImage(){
+        Debug.Log("click classifi");
 		//pass in input tensor
 		var tensor = TransformInput (camFeed.GetImage (), INPUT_SIZE, INPUT_SIZE);
         var runner = session.GetRunner();
