@@ -9,13 +9,10 @@ using System.IO;
 
 public class ImageFilter : MonoBehaviour {
 
+    Texture2D camTextureSaved;
     Texture2D camTexture;
     Texture2D destTex;
     Texture2D saveToFileTex;
-
-    Color32[,] edgeImageData;
-
-
 
     public CameraFeedBehavior camFeed;
     public RawImage background;
@@ -32,6 +29,7 @@ public class ImageFilter : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        background.texture = camFeed.GetImageTexture();
         timeCounter = 0;
         imageNameCounter = 0;
     }
@@ -39,29 +37,19 @@ public class ImageFilter : MonoBehaviour {
     void ProcessImage()
     {
         camTexture = camFeed.GetImageTexture();
-
         imageHeight = Convert.ToInt32(camTexture.height);
         imageWidth = Convert.ToInt32(camTexture.width);
-
         //getting right pxiel ratios
-        double ratio = imageWidth / imageHeight;
-
-        imageHeight = 244;
-        imageWidth = Convert.ToInt32(244 * ratio);
-       
-        camTexture = TextureTools.CropTexture(camTexture);
-        camTexture = TextureTools.scaled(camTexture, imageWidth, imageHeight, FilterMode.Trilinear);
-        Debug.Log(imageHeight + "   " + imageWidth);
 
         //convert to two D pixel array
-        Color32[,] twoDImageData = GetTwoDColor(camTexture);
+        Color32[,] twoDImageData = GetTwoDColor(camTexture, imageWidth,imageHeight);
 
         // apply edge filter
-        edgeImageData = EdgeFilter(twoDImageData);
+        Color32[,] edgeImageData2 = EdgeFilter(twoDImageData, imageWidth, imageHeight);
 
 
         //convert back to one D pixel array
-        Color32[] oneDImageData = GetOneDColor(edgeImageData);
+        Color32[] oneDImageData = GetOneDColor(edgeImageData2, imageWidth, imageHeight);
 
         destTex = new Texture2D(imageWidth, imageHeight);
         destTex.SetPixels32(oneDImageData);
@@ -75,7 +63,7 @@ public class ImageFilter : MonoBehaviour {
 
     }
 
-    Color32[,] EdgeFilter(Color32[,] twoDImagearray)
+    Color32[,] EdgeFilter(Color32[,] twoDImagearray, int imageWidth, int imageHeight)
     {
 
        Double[,] intensity = new Double[imageHeight, imageWidth];
@@ -118,15 +106,15 @@ public class ImageFilter : MonoBehaviour {
 
                         imageData[h, w].b = 0;
                         
-                    // make black bckground transperant
+                    // make black bckground transparant
                         if(imageData[h,w].r < 20)
                         {
                             imageData[h, w].a = 0;
                         }
                         else if(imageData[h, w].r < 50)
                         {
-                        imageData[h, w].a = 200;
-                    }
+                            imageData[h, w].a = 200;
+                        }
                         else 
                         {
                             imageData[h, w].a = 255;
@@ -205,7 +193,7 @@ public class ImageFilter : MonoBehaviour {
 
 
 
-    Color32[,] CutOutFilter(Color32[,] twoDImagearray)
+    Color32[,] CutOutFilter(Color32[,] twoDImagearray, int imageWidth, int imageHeight)
     {
 
         Color32[,] imageData = new Color32[224, 224];
@@ -223,7 +211,7 @@ public class ImageFilter : MonoBehaviour {
     }
 
 
-    Color32[,] GetTwoDColor(Texture2D sourceTex)
+    Color32[,] GetTwoDColor(Texture2D sourceTex, int imageWidth, int imageHeight)
     {
         var pix = sourceTex.GetPixels32();
         Color32[,] imageData = new Color32[imageHeight,imageWidth];
@@ -248,7 +236,7 @@ public class ImageFilter : MonoBehaviour {
         return imageData;
     }
 
-    Color32[] GetOneDColor(Color32[,] twoDimageArray)
+    Color32[] GetOneDColor(Color32[,] twoDimageArray, int imageWidth, int imageHeight)
     {
         Color32[] imageData = new Color32[imageWidth * imageHeight];
 
@@ -268,7 +256,7 @@ public class ImageFilter : MonoBehaviour {
         return imageData;
     }
 
-    Color32[] GetOneDColor224(Color32[,] twoDimageArray)
+    Color32[] GetOneDColor224(Color32[,] twoDimageArray, int imageWidth, int imageHeight)
     {
         Color32[] imageData = new Color32[224 * 224];
 
@@ -288,11 +276,92 @@ public class ImageFilter : MonoBehaviour {
         return imageData;
     }
 
+    Color32[] GetBWjpg(Color32[] oneDImageArray)
+    {
+        Color32[] imageData = new Color32[oneDImageArray.Length];
+
+        for(int i = 0; i<oneDImageArray.Length; i++)
+        {
+            if(oneDImageArray[i].r < 10)
+            {
+                imageData[i].r = 255;
+                imageData[i].g = 255;
+                imageData[i].b = 255;
+            }
+            else if(oneDImageArray[i].r < 30)
+            {
+                Byte blackGrade = Math.Min(Convert.ToByte(Math.Abs(255 - oneDImageArray[i].r * 5)), (byte)255);
+                imageData[i].r = blackGrade;
+                imageData[i].g = blackGrade;
+                imageData[i].b = blackGrade;
+            }
+            else
+            {
+                imageData[i].r = 0;
+                imageData[i].g = 0;
+                imageData[i].b = 0;
+            }
+            imageData[i].a = 255;
+        }
+
+        return imageData;
+    }
+
+    void SaveToPng()
+    {
+
+        camTextureSaved = camFeed.GetImageTexture();
+
+        int imageHeightSaved = Convert.ToInt32(camTexture.height);
+        int imageWidthSaved = Convert.ToInt32(camTexture.width);
+        //getting right pxiel ratios
+        double ratio = imageWidthSaved / imageHeightSaved;
+
+        imageHeightSaved = 244;
+        imageWidthSaved = Convert.ToInt32(244 * ratio);
+
+        camTexture = TextureTools.CropTexture(camTexture);
+        camTextureSaved = TextureTools.scaled(camTextureSaved, imageWidthSaved, imageHeightSaved, FilterMode.Trilinear);
+        Debug.Log(imageHeightSaved + "   " + imageWidthSaved);
+
+        //convert to two D pixel array
+        Color32[,] twoDImageData = GetTwoDColor(camTextureSaved, imageWidthSaved, imageHeightSaved);
+
+        // apply edge filter
+        Color32[,] edgeImageData = EdgeFilter(twoDImageData, imageWidthSaved, imageHeightSaved);
+
+        //cutout for saving to file
+        Color32[,] cutOutImageData = CutOutFilter(edgeImageData, imageWidthSaved, imageHeightSaved);
+
+        //convert back to one D pixel array
+        Color32[] oneDSaveToFileImageData = GetOneDColor224(edgeImageData, imageWidthSaved, imageHeightSaved);
+
+        saveToFileTex = new Texture2D(224, 224);
+        saveToFileTex.SetPixels32(oneDSaveToFileImageData);
+        saveToFileTex.Apply();
+
+        fileName = fileNameField.text;
+        byte[] pngBytes = saveToFileTex.EncodeToPNG();
+        File.WriteAllBytes(Application.persistentDataPath + "/" + fileName + imageNameCounter + ".png", pngBytes);
+
+
+        Color32[] BWjpgImageData = GetBWjpg(oneDSaveToFileImageData);
+        saveToFileTex.SetPixels32(BWjpgImageData);
+        saveToFileTex.Apply();
+
+        byte[] jpgBytes = saveToFileTex.EncodeToJPG(100);
+        File.WriteAllBytes(Application.persistentDataPath + "/" + "B_W_" + fileName + imageNameCounter + ".jpg", jpgBytes);
+
+        Debug.Log("Saved to " + Application.persistentDataPath + "/"+ "R_T_" + fileName + imageNameCounter + ".png");
+        messageBehavior.ShowMessage("Saved");
+        imageNameCounter++;
+    }
     // Update is called once per frame
     void Update () {
 
+
         timeCounter++;
-        if (timeCounter > 30)
+        if (timeCounter > 20)
         {
             timeCounter = 0;
             ProcessImage();
@@ -300,24 +369,12 @@ public class ImageFilter : MonoBehaviour {
         if (Input.GetMouseButtonDown(0))
         {
             if(fileNameField.text != "")
+            { 
+                SaveToPng();
+            }
+            else
             {
-
-                //cutout for saving to file
-                Color32[,] cutOutImageData = CutOutFilter(edgeImageData);
-
-                //convert back to one D pixel array
-                Color32[] oneDSaveToFileImageData = GetOneDColor224(edgeImageData);
-
-                saveToFileTex = new Texture2D(224, 224);
-                saveToFileTex.SetPixels32(oneDSaveToFileImageData);
-                saveToFileTex.Apply();
-
-                fileName = fileNameField.text;
-                byte[] pngBytes = saveToFileTex.EncodeToPNG();
-                File.WriteAllBytes(Application.persistentDataPath + "/" + fileName + imageNameCounter + ".png", pngBytes);
-                Debug.Log("Saved to " + Application.persistentDataPath + "/" + fileName + imageNameCounter + ".png");
-                messageBehavior.ShowMessage("Saved to " + Application.persistentDataPath + "/" + fileName + imageNameCounter + ".png");
-                imageNameCounter++;
+                messageBehavior.ShowMessage("Enter name to Save");
             }
            
             
