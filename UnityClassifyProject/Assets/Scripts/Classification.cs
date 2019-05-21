@@ -51,12 +51,26 @@ public class Classification : MonoBehaviour {
 		//put results into one dimensional array
 		float[] probs = ((float [] [])output[0].GetValue (jagged: true)) [0];
 		//get max value of probabilities and find its associated label index
+      
 		float maxValue = probs.Max ();
-		int maxIndex = probs.ToList ().IndexOf (maxValue);
-		//print label with highest probability
-		string label = labels [maxIndex];
-		print (label);
-		messageBehavior.ShowMessage (label);
+        var listArr = probs.ToList();
+
+        int maxIndex = listArr.IndexOf (maxValue);
+        listArr.Remove(maxValue);
+        var mx1 = maxValue*10000;
+        maxValue = listArr.Max();
+        int maxIndex2 = listArr.IndexOf(maxValue);
+        listArr.Remove(maxValue);
+        var mx2 = maxValue*10000;
+        maxValue = listArr.Max();
+        int maxIndex3 = listArr.IndexOf(maxValue);
+        var mx3 = maxValue*10000;
+        //print label with highest probability
+        string label = labels [maxIndex] + " " + mx1;
+        string label2 = labels[maxIndex2] + " " + mx2;
+        string label3 = labels[maxIndex3] + " " + mx3;
+        print (label);
+		messageBehavior.ShowMessage (label,label2,label3);
 	}
 
 	//stole from https://github.com/Syn-McJ/TFClassify-Unity

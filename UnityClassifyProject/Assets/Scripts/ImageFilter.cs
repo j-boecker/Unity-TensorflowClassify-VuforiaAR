@@ -29,7 +29,7 @@ public class ImageFilter : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        background.texture = camFeed.GetImageTexture();
+    
         timeCounter = 0;
         imageNameCounter = 0;
     }
@@ -60,7 +60,6 @@ public class ImageFilter : MonoBehaviour {
         // Set the current object's texture to show the
         // rotated image.
         background.texture = (Texture)destTex;
-
     }
 
     Color32[,] EdgeFilter(Color32[,] twoDImagearray, int imageWidth, int imageHeight)
@@ -353,37 +352,22 @@ public class ImageFilter : MonoBehaviour {
         File.WriteAllBytes(Application.persistentDataPath + "/" + "B_W_" + fileName + imageNameCounter + ".jpg", jpgBytes);
 
         Debug.Log("Saved to " + Application.persistentDataPath + "/"+ "R_T_" + fileName + imageNameCounter + ".png");
-        messageBehavior.ShowMessage("Saved");
+        
         imageNameCounter++;
     }
     // Update is called once per frame
     void Update () {
 
 
-        timeCounter++;
-        if (timeCounter > 20)
-        {
-            timeCounter = 0;
-            ProcessImage();
-        }
         if (Input.GetMouseButtonDown(0))
         {
-            if(fileNameField.text != "")
-            { 
-                SaveToPng();
-            }
-            else
-            {
-                messageBehavior.ShowMessage("Enter name to Save");
-            }
-           
-            
+            ProcessImage();
         }
         if (camTexture)
         {
             float ratio = (float)camTexture.width / (float)camTexture.height;
             fit.aspectRatio = ratio;
         }
-       
+      
     }
 }

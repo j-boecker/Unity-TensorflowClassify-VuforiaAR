@@ -107,7 +107,7 @@ public class CameraFeedBehavior : MonoBehaviour {
 		//crop
 		var cropped = TextureTools.CropTexture (camTex);
 		//scale
-		var scaled = TextureTools.scaled (cropped, 224, 224, FilterMode.Bilinear);
+		var scaled = TextureTools.scaled (cropped, 28, 28, FilterMode.Bilinear);
 		//return scaled color32[]
 		return scaled.GetPixels32();
 	}
